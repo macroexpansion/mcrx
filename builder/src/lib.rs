@@ -20,14 +20,24 @@ fn impl_builder(ast: &syn::DeriveInput) -> TokenStream {
     } else {
         unimplemented!()
     };
+
     let optionized_fields = fields.iter().map(|field| {
         let ident = &field.ident;
-        let ty = &field.ty.clone();
-        quote! { #ident: std::option::Option<#ty> }
+        let ty = &field.ty;
+        if ty_inner_type("Option", ty).is_some() {
+            quote! { #ident: #ty }
+        } else {
+            quote! { #ident: std::option::Option<#ty> }
+        }
     });
+
     let methods = fields.iter().map(|field| {
         let ident = &field.ident;
-        let ty = &field.ty.clone();
+        let ty = if let Some(ty) = ty_inner_type("Option", &field.ty) {
+            ty
+        } else {
+            &field.ty
+        };
         quote! {
             pub fn #ident(&mut self, value: #ty) -> &mut Self {
                 self.#ident = Some(value);
@@ -35,14 +45,19 @@ fn impl_builder(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     });
+
     let builder_struct_ident = syn::Ident::new(&format!("{ident}Builder"), ident.span());
-    let builder_struct_attrs = fields.iter().map(|field| {
+    let builder_struct_fields = fields.iter().map(|field| {
         let ident = &field.ident;
         quote! { #ident: None }
     });
     let builder_struct_build = fields.iter().map(|field| {
         let ident = &field.ident;
-        quote! { #ident: self.#ident.clone().ok_or(concat!(stringify!(#ident), " is not set"))? }
+        if ty_inner_type("Option", &field.ty).is_some() {
+            quote! { #ident: self.#ident.clone() }
+        } else {
+            quote! { #ident: self.#ident.clone().ok_or(concat!(stringify!(#ident), " is not set"))? }
+        }
     });
 
     let generated = quote! {
@@ -63,11 +78,31 @@ fn impl_builder(ast: &syn::DeriveInput) -> TokenStream {
         impl #ident {
             pub fn builder() -> #builder_struct_ident {
                 #builder_struct_ident {
-                    #(#builder_struct_attrs,)*
+                    #(#builder_struct_fields,)*
                 }
             }
         }
     };
 
     TokenStream::from(generated)
+}
+
+fn ty_inner_type<'a>(wrapper: &str, ty: &'a syn::Type) -> Option<&'a syn::Type> {
+    if let syn::Type::Path(ref p) = ty {
+        if p.path.segments.len() != 1 || p.path.segments[0].ident != wrapper {
+            return None;
+        }
+
+        if let syn::PathArguments::AngleBracketed(ref inner_ty) = p.path.segments[0].arguments {
+            if inner_ty.args.len() != 1 {
+                return None;
+            }
+
+            let inner_ty = inner_ty.args.first().unwrap();
+            if let syn::GenericArgument::Type(ref t) = inner_ty {
+                return Some(t);
+            }
+        }
+    }
+    None
 }

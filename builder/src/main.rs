@@ -5,11 +5,11 @@ pub struct Command {
     executable: String,
     args: Vec<String>,
     env: Vec<String>,
-    current_dir: String,
+    current_dir: Option<String>,
 }
 
 fn main() {
     let mut builder = Command::builder();
-    builder.current_dir("cargo".to_string());
-    let command = builder.build().unwrap();
+    // builder.current_dir("cargo".to_string());
+    // let command = builder.build().unwrap();
 }
