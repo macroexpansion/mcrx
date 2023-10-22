@@ -9,5 +9,7 @@ pub struct Command {
 }
 
 fn main() {
-    // let mut builder = Command::builder();
+    let mut builder = Command::builder();
+    builder.current_dir("cargo".to_string());
+    let command = builder.build().unwrap();
 }

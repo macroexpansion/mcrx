@@ -40,6 +40,10 @@ fn impl_builder(ast: &syn::DeriveInput) -> TokenStream {
         let ident = &field.ident;
         quote! { #ident: None }
     });
+    let builder_struct_build = fields.iter().map(|field| {
+        let ident = &field.ident;
+        quote! { #ident: self.#ident.clone().ok_or(concat!(stringify!(#ident), " is not set"))? }
+    });
 
     let generated = quote! {
         pub struct #builder_struct_ident {
@@ -48,6 +52,12 @@ fn impl_builder(ast: &syn::DeriveInput) -> TokenStream {
 
         impl #builder_struct_ident {
             #(#methods)*
+
+            pub fn build(&mut self) -> std::result::Result<#ident, std::boxed::Box<dyn std::error::Error>> {
+                Ok(#ident {
+                    #(#builder_struct_build,)*
+                })
+            }
         }
 
         impl #ident {
