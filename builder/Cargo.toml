@@ -1,5 +1,5 @@
 [package]
-name = "derive_builder"
+name = "derive-builder"
 version = "0.0.0"
 autotests = false
 edition = "2021"

@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "derive_builder"
+name = "derive-builder"
 version = "0.0.0"
 dependencies = [
  "proc-macro2",
