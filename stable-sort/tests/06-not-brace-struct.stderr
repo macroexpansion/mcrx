@@ -1,0 +1,7 @@
+error: expected struct with braces
+ --> tests/06-not-brace-struct.rs:3:1
+  |
+3 | #[stable_sorted]
+  | ^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `stable_sorted` (in Nightly builds, run with -Z macro-backtrace for more info)

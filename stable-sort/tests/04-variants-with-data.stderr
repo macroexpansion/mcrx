@@ -1,0 +1,5 @@
+error: Dyn should sort before Fmt
+  --> tests/04-variants-with-data.rs:15:5
+   |
+15 |     Dyn(Box<dyn StdError>),
+   |     ^^^

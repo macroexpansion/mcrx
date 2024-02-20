@@ -1,0 +1,5 @@
+error: SomethingFailed should sort before ThatFailed
+ --> tests/03-out-of-order.rs:7:5
+  |
+7 |     SomethingFailed,
+  |     ^^^^^^^^^^^^^^^
