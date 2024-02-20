@@ -17,13 +17,31 @@ pub fn stable_sorted(args: TokenStream, input: TokenStream) -> TokenStream {
 
 fn sort(input: syn::Item) -> Result<(), syn::Error> {
     match input {
-        syn::Item::Enum(_) => todo!(),
+        syn::Item::Enum(value) => sort_enum(value),
         syn::Item::Struct(value) => sort_struct(value),
         _ => Err(syn::Error::new(
             proc_macro2::Span::call_site(),
             "expected struct or enum",
         )),
     }
+}
+
+fn sort_enum(item: syn::ItemEnum) -> Result<(), syn::Error> {
+    let mut idents = Vec::new();
+    for variant in item.variants.iter() {
+        let ident = variant.ident.to_string();
+        if idents.last().map(|last| &ident < last).unwrap_or(false) {
+            let next_index = idents.binary_search(&ident).unwrap_err();
+
+            return Err(syn::Error::new(
+                variant.ident.span(),
+                format!("{} should sort before {}", ident, idents[next_index]),
+            ));
+        }
+        idents.push(ident);
+    }
+
+    Ok(())
 }
 
 fn sort_struct(item: syn::ItemStruct) -> Result<(), syn::Error> {

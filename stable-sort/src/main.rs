@@ -7,6 +7,13 @@ struct A {
     c: u32,
 }
 
+#[stable_sorted]
+enum B {
+    A,
+    B,
+    C,
+}
+
 fn main() {
     println!("main");
 }
